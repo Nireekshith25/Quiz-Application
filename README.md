@@ -54,7 +54,7 @@ Vanilla JavaScript – For quiz logic, scoring, and dynamic rendering
 💡 Sample Screenshot
 
 > ![Welcome](Welcome.png)
->  ![Questions(2)](Questions.png)
+>  ![Questions (2)](Questions.png)
 >  ![Result](Result.png) 
 
 

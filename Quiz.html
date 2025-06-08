@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome to Quiz Game</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #43cea2, #185a9d);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .screen {
+      display: none;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      width: 600px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: fadeIn 1s ease-in-out;
+    }
+    .active {
+      display: block;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, #f7971e, #ffd200);
+      -webkit-background-clip: text;
+      color: transparent;
+      font-size: 2.2em;
+    }
+    p {
+      text-align: center;
+      font-size: 1.1em;
+      color: #333;
+    }
+    button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      border: none;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      background: linear-gradient(to right, #36d1dc, #5b86e5);
+      transition: 0.3s ease-in-out;
+    }
+    button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to right, #5b86e5, #36d1dc);
+    }
+    .options label {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .options label:hover {
+      background: #e0f7fa;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    #timer-bar {
+      height: 10px;
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      border-radius: 20px;
+      margin-top: 15px;
+      animation: shrink 20s linear forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shrink {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Welcome Screen -->
+<div id="welcome-screen" class="screen active">
+  <h1>🎮 Welcome to the Quiz Challenge</h1>
+  <p>Test your knowledge with exciting questions.<br>Click below to begin!</p>
+  <button onclick="startQuiz()">Start Quiz 🚀</button>
+</div>
+
+<!-- Quiz Screen -->
+<div id="quiz-screen" class="screen">
+  <h1>🧠 Quiz Time</h1>
+  <div id="question-box"></div>
+  <div id="timer-bar"></div>
+  <button id="submit-btn">Submit</button>
+  <div id="result-box"></div>
+</div>
+
+<script>
+  const questions = [
+    {
+      type: "single",
+      question: "Which planet is known as the Red Planet?",
+      options: ["Earth", "Mars", "Venus", "Jupiter"],
+      answer: "Mars"
+    },
+    {
+      type: "multi",
+      question: "Which are fruits?",
+      options: ["Apple", "Potato", "Banana", "Carrot"],
+      answer: ["Apple", "Banana"]
+    },
+    {
+      type: "fill",
+      question: "The currency of Japan is ____.",
+      answer: "Yen"
+    }
+  ];
+
+  let current = 0, score = 0, timer;
+  const questionBox = document.getElementById("question-box");
+  const resultBox = document.getElementById("result-box");
+  const submitBtn = document.getElementById("submit-btn");
+
+  function startQuiz() {
+    document.getElementById("welcome-screen").classList.remove("active");
+    document.getElementById("quiz-screen").classList.add("active");
+    loadQuestion();
+  }
+
+  function resetTimerBar() {
+    const bar = document.getElementById("timer-bar");
+    bar.style.animation = "none";
+    bar.offsetHeight; // force reflow
+    bar.style.animation = "shrink 20s linear forwards";
+  }
+
+  function loadQuestion() {
+    clearInterval(timer);
+    const q = questions[current];
+    questionBox.innerHTML = `<div class="question"><h3>${q.question}</h3></div><div class="options"></div>`;
+    const options = questionBox.querySelector(".options");
+
+    if (q.type === "single") {
+      q.options.forEach(opt => {
+        options.innerHTML += `<label><input type="radio" name="answer" value="${opt}"> ${opt}</label>`;
+      });
+    } else if (q.type === "multi") {
+      q.options.forEach(opt => {
+        options.innerHTML += `<label><input type="checkbox" name="answer" value="${opt}"> ${opt}</label>`;
+      });
+    } else if (q.type === "fill") {
+      options.innerHTML = `<input type="text" id="fill-input" placeholder="Your answer...">`;
+    }
+
+    resetTimerBar();
+    timer = setTimeout(() => {
+      alert("⏰ Time's up!");
+      submitAnswer();
+    }, 20000);
+  }
+
+  function submitAnswer() {
+    clearTimeout(timer);
+    const q = questions[current];
+    let userAnswer;
+
+    if (q.type === "single") {
+      const selected = document.querySelector('input[name="answer"]:checked');
+      if (!selected) return alert("Please select an option.");
+      userAnswer = selected.value;
+      if (userAnswer === q.answer) score++;
+    } else if (q.type === "multi") {
+      const selected = Array.from(document.querySelectorAll('input[name="answer"]:checked')).map(e => e.value);
+      if (JSON.stringify(selected.sort()) === JSON.stringify(q.answer.sort())) score++;
+    } else if (q.type === "fill") {
+      userAnswer = document.getElementById("fill-input").value.trim().toLowerCase();
+      if (userAnswer === q.answer.toLowerCase()) score++;
+    }
+
+    current++;
+    if (current < questions.length) {
+      loadQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    questionBox.innerHTML = "";
+    document.getElementById("timer-bar").style.display = "none";
+    submitBtn.style.display = "none";
+    resultBox.innerHTML = `
+      <h2>🎉 Quiz Completed!</h2>
+      <p>Your Score: <strong>${score} / ${questions.length}</strong></p>
+      <button onclick="location.reload()">🔁 Restart Quiz</button>
+    `;
+  }
+
+  submitBtn.onclick = submitAnswer;
+</script>
+
+</body>
+</html>
